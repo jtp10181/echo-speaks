@@ -361,6 +361,9 @@ def servPrefPage() {
                 Boolean oH = (Boolean)getServerItem("onHeroku")
                 section(sectHead("Server Management:")) {
                     if(oH && (String)state.herokuName) { paragraph spanSmBldBr("Heroku Name:", sCLR4D9) + spanSm(" ${sBULLET} ${(String)state.herokuName}", sCLR4D9) }
+                    paragraph spanSmBld("Current Server Host:", sCLR4D9) + " " + spanSmBr("${getServerHostURL()}", sCLR4D9)
+                    input "serverHostOverride", "text", title: inTS1("Server Host Override"), required: false, submitOnChange: true
+                    if(serverHostOverride && serverHostOverride ==~ /.*\/$/) { settingUpdate("serverHostOverride", serverHostOverride.substring(0, serverHostOverride.length()-1), "text") }
                     href url: myUrl, style: sEXTNRL, title: inTS1("Amazon Login Page", sAMAZONORNG), description: t0 + inputFooter(sTTP, sCLR4D9)
                     if(oH) href url: "https://dashboard.heroku.com/apps/${getRandAppName()}/settings", style: sEXTNRL, title: inTS1("Heroku App Settings", sHEROKU), description: inactFoot(sTTP)
                     if(oH) href url: "https://dashboard.heroku.com/apps/${getRandAppName()}/logs", style: sEXTNRL, title: inTS1("Heroku App Logs", sHEROKU), description: inactFoot(sTTP)
@@ -2188,7 +2191,9 @@ static String toQueryString(Map m) {
 
 String getServerHostURL() {
     String srvHost = (String)getServerItem("serverHost")
-    return ((Boolean)getServerItem("isLocal") && srvHost) ? (srvHost ?: sNULL) : "https://${getRandAppName()}.herokuapp.com".toString()
+    String srvHostOr = (serverHostOverride && serverHostOverride ==~ /.*\/$/) ? serverHostOverride.substring(0, serverHostOverride.length()-1): serverHostOverride
+    String rtnHost = ((Boolean)getServerItem("isLocal") && srvHost) ? (srvHost ?: sNULL) : "https://${getRandAppName()}.herokuapp.com".toString()
+    return (srvHostOr) ?: rtnHost
 }
 
 Integer cookieRefreshSeconds() { return ((Integer)settings.refreshCookieDays ?: 5)*86400 as Integer }
